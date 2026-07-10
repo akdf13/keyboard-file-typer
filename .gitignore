@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*.pyo
+
+.venv/
+venv/
+env/
+
+.env
+
+# Local input content. Copy text.example.txt to text.txt before running.
+text.txt
