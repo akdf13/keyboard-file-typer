@@ -15,8 +15,8 @@
 
 | 文件 | 说明 |
 | --- | --- |
-| `shu_ju_ku.py` | 默认按明文读取 `text.txt` 并输入，内置更多符号映射；也可以按代码注释切换为 Base64 输入。 |
-| `shu_ju_ku_cn.py` | 读取 `text.txt` 后先转为 Base64，再模拟键盘输入。 |
+| `type_text.py` | 按 UTF-8 明文读取 `text.txt` 并输入，支持更多常见符号映射。 |
+| `type_base64.py` | 读取 `text.txt` 后先转为 Base64，再模拟键盘输入 ASCII 内容。 |
 | `text.example.txt` | 输入文件示例。实际使用时复制为 `text.txt`。 |
 | `requirements.txt` | Python 依赖列表。 |
 
@@ -45,20 +45,50 @@ pip install -r requirements.txt
 3. 运行脚本：
 
    ```powershell
-   python shu_ju_ku.py
+   python type_text.py
    ```
 
    或者使用 Base64 输入版本：
 
    ```powershell
-   python shu_ju_ku_cn.py
+   python type_base64.py
    ```
 
 4. 脚本开始后会有 3 秒倒计时。在倒计时结束前，把光标点击到目标输入窗口中。
 
+## 自定义等待时间与打字速度
+
+两个脚本都可以通过修改文件末尾的 `delay` 参数来自定义开始输入前的等待时间：
+
+```python
+inject_hardware_scancodes("text.txt", delay=3)
+```
+
+`delay=3` 表示等待 3 秒。需要更多时间切换窗口时，可以改为 `5`、`10` 等更大的整数。
+
+打字速度由脚本循环中的两处暂停时间控制：
+
+```python
+pydirectinput.keyDown(target_key)
+time.sleep(0.005)  # 按键保持时间
+pydirectinput.keyUp(target_key)
+
+time.sleep(0.005)  # 两次击键之间的间隔
+```
+
+单位均为秒。数值越小，输入越快；数值越大，输入越慢，但在虚拟机、VNC 或远程桌面中通常更稳定。例如：
+
+| 使用场景 | 按键保持时间 | 击键间隔 |
+| --- | ---: | ---: |
+| 本地窗口、追求速度 | `0.002` | `0.002` |
+| 默认设置 | `0.005` | `0.005` |
+| 远程环境、优先稳定 | `0.01` | `0.01` |
+
+建议先用短文本测试。若出现漏字、字符顺序异常或目标窗口响应不及时，请逐步增大这两个数值。
+
 ## 使用提示
 
-- 如果目标环境只适合输入 ASCII 文本，优先使用 `shu_ju_ku_cn.py` 的 Base64 模式。
+- 如果目标环境只适合输入 ASCII 文本，优先使用 `type_base64.py` 的 Base64 模式。
 - 如果输出字符不正确，先检查键盘布局和输入法状态。
 - 如果内容很长，建议先用短文本测试，确认焦点窗口、换行和符号都正常后再输入完整内容。
 - `pydirectinput.FAILSAFE` 在脚本中被关闭，运行时请谨慎操作。
